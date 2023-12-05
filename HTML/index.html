@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Image Classifier</title>
+</head>
+
+<body>
+    <h1>Image Classifier</h1>
+    <form id="upload-form" action="/predict" method="POST" enctype="multipart/form-data">
+        <p>Upload Image</p>
+        <input type="file" name="image" id="image" accept="image/*">
+        <input type="submit" value="Predict">
+    </form>
+
+    <div id="result"></div>
+    <div id="display-image"></div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.hasOwnProperty('predicted_class')) {
+                        document.getElementById('result').innerHTML = `<p>Predicted Class: ${data.predicted_class}</p>`;
+                    } else {
+                        document.getElementById('result').innerHTML = `<p>Error: ${data.error}</p>`;
+                    }
+
+                    // Display the uploaded image
+                    const fileInput = document.getElementById('image');
+                    const file = fileInput.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        document.getElementById('display-image').innerHTML = `<img src="${e.target.result}" alt="Uploaded Image" width="300">`;
+                    }
+                    reader.readAsDataURL(file);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+</body>
+
+</html>
